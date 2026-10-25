@@ -1,0 +1,12 @@
+export function formatINR(amount: number): string {
+  return "₹" + Math.round(amount).toLocaleString("en-IN");
+}
+
+export function initials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
