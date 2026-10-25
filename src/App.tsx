@@ -1,5 +1,6 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Layout from "./components/layout/Layout";
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import NewOrder from "./pages/NewOrder";
 import Payment from "./pages/Payment";
@@ -21,7 +22,7 @@ function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/order" element={<NewOrder />} />
         <Route path="/order/:id/pay" element={<Payment />} />
