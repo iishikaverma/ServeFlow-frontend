@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/* =========================================================
+   ServeFlow theme — single source of truth.
+   Light & clean by default; flip data-theme="dark" on <html>
+   to switch the whole app (tokens below redefine per mode).
+   ========================================================= */
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Warm restaurant accent (amber) */
+  --color-brand-50: #fff8ed;
+  --color-brand-100: #ffefd4;
+  --color-brand-200: #fedca8;
+  --color-brand-300: #fdc271;
+  --color-brand-400: #fb9d38;
+  --color-brand-500: #f97f16;
+  --color-brand-600: #ea640c;
+  --color-brand-700: #c24a0c;
+  --color-brand-800: #9a3b12;
+  --color-brand-900: #7c3212;
+}
+
+:root {
+  color-scheme: light;
+
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface-2: #faf9f6;
+  --border: #ece9e2;
+  --border-strong: #ddd8cd;
+
+  --text: #1c1917;
+  --text-muted: #6b6760;
+  --text-faint: #9a948a;
+
+  --accent: #ea640c;
+  --accent-soft: #fff4e8;
+  --accent-text: #9a3b12;
+
+  --success: #15803d;
+  --success-soft: #eafaf0;
+  --warning: #b45309;
+  --warning-soft: #fdf3e3;
+
+  --ring: rgba(234, 100, 12, 0.35);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0e0d0c;
+  --surface: #1a1816;
+  --surface-2: #211e1b;
+  --border: #2c2824;
+  --border-strong: #3a352f;
+
+  --text: #f5f3ef;
+  --text-muted: #a8a299;
+  --text-faint: #736d64;
+
+  --accent: #fb9d38;
+  --accent-soft: #2a1d10;
+  --accent-text: #fdc271;
+
+  --success: #4ade80;
+  --success-soft: #112a1a;
+  --warning: #fbbf24;
+  --warning-soft: #2a1f0e;
+
+  --ring: rgba(251, 157, 56, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
