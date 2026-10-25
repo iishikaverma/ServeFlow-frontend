@@ -1,32 +1,77 @@
-# React + TypeScript + Vite
+# ServeFlow — Restaurant Order Management
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A restaurant point-of-sale web app: browse the menu, take orders, run payments,
+and track service live. A typed **React** front end on a **C++ (Crow) REST API**.
 
-Currently, two official plugins are available:
+> Built to feel like a real product. It ships with a demo mode, so the deployed
+> site stays live even when the backend isn't running.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Service dashboard** — KPI row (revenue, orders, avg ticket, top seller),
+  a live orders board with status and line items, and the menu.
+- **POS order flow** — tap the menu to build an order, add the customer, place it.
+- **Payments** — cash, card, and UPI with an animated processing → paid state.
+- **Analytics** — revenue by order, revenue by category, and top sellers
+  (charts computed client-side from the orders).
+- **Light / dark theme**, responsive down to mobile, and reduced-motion support.
+- **Demo mode** — bundled sample data with automatic fallback when the API is offline.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
 
-## Expanding the Oxlint configuration
+React 19 · TypeScript · Vite · Tailwind CSS v4 · React Router · Framer Motion ·
+Recharts · lucide-react — talking to a C++ / Crow REST API.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Getting started
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+```bash
+npm run build    # type-check + production build
+npm run preview  # serve the production build
+```
+
+## Connecting the backend
+
+The app reads the API base URL from an environment variable. Copy the example
+and adjust as needed:
+
+```bash
+cp .env.example .env
+```
+
+| Variable             | Default                   | Purpose                                      |
+| -------------------- | ------------------------- | -------------------------------------------- |
+| `VITE_API_BASE_URL`  | `http://localhost:18080`  | Base URL of the ServeFlow C++ API            |
+| `VITE_USE_MOCK`      | _(unset)_                 | Set to `true` to always use bundled demo data |
+
+**Live API:** build and run the `serveflow_api` executable from the backend
+(`serve_flow_backend`) so it listens on port `18080`, then start this app. The
+backend already sends CORS headers for the browser.
+
+**Demo mode:** if the API is unreachable, the app automatically falls back to
+bundled sample data and shows a "Demo mode" banner — no configuration needed.
+Set `VITE_USE_MOCK=true` to force it (useful for a static portfolio deploy).
+
+## API
+
+| Method | Route                       | Purpose                       |
+| ------ | --------------------------- | ----------------------------- |
+| GET    | `/api/menu`                 | List menu items               |
+| GET    | `/api/orders`               | List orders with line items   |
+| POST   | `/api/orders`               | Create an order               |
+| POST   | `/api/orders/<id>/payment`  | Pay an order (cash/card/upi)  |
+
+## Project structure
+
+```
+src/
+  components/   layout (navbar, footer), banner, toast
+  hooks/        theme + data-mode hooks
+  lib/          formatting, order stats, analytics helpers
+  pages/        Landing, Dashboard, NewOrder, Payment, Analytics, NotFound
+  services/     api client, types, mock data
+```

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Landing from "./pages/Landing";
@@ -6,14 +7,13 @@ import NewOrder from "./pages/NewOrder";
 import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 
-// Lightweight stub for routes built in later phases.
-function Stub({ title }: { title: string }) {
+// Code-split the charts (recharts is heavy) so it loads only on /analytics.
+const Analytics = lazy(() => import("./pages/Analytics"));
+
+function RouteFallback() {
   return (
-    <div className="mx-auto max-w-md px-5 py-28 text-center">
-      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-      <p className="mt-2" style={{ color: "var(--text-muted)" }}>
-        Coming in the next build phase.
-      </p>
+    <div className="px-5 py-28 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+      Loading…
     </div>
   );
 }
@@ -26,7 +26,14 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/order" element={<NewOrder />} />
         <Route path="/order/:id/pay" element={<Payment />} />
-        <Route path="/analytics" element={<Stub title="Analytics" />} />
+        <Route
+          path="/analytics"
+          element={
+            <Suspense fallback={<RouteFallback />}>
+              <Analytics />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
