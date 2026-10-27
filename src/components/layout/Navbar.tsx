@@ -1,5 +1,6 @@
-import { NavLink, Link } from "react-router-dom";
-import { Moon, Sun, UtensilsCrossed, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import { Moon, Sun, UtensilsCrossed, Plus, Menu, X } from "lucide-react";
 import { useTheme } from "../../hooks/useTheme";
 
 const links = [
@@ -9,6 +10,22 @@ const links = [
 
 function Navbar() {
   const { theme, toggle } = useTheme();
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => setOpen(false), [location.pathname]);
+
+  const themeButton = (
+    <button
+      onClick={toggle}
+      aria-label="Toggle theme"
+      className="flex h-9 w-9 items-center justify-center rounded-lg border transition-colors"
+      style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+    >
+      {theme === "light" ? <Moon size={17} /> : <Sun size={17} />}
+    </button>
+  );
 
   return (
     <header
@@ -29,7 +46,8 @@ function Navbar() {
           <span className="text-lg font-bold tracking-tight">ServeFlow</span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        {/* Desktop nav */}
+        <div className="hidden items-center gap-2 sm:flex">
           {links.map((l) => (
             <NavLink
               key={l.to}
@@ -43,26 +61,63 @@ function Navbar() {
               {l.label}
             </NavLink>
           ))}
-
-          <button
-            onClick={toggle}
-            aria-label="Toggle theme"
-            className="ml-1 flex h-9 w-9 items-center justify-center rounded-lg border transition-colors"
-            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
-          >
-            {theme === "light" ? <Moon size={17} /> : <Sun size={17} />}
-          </button>
-
+          {themeButton}
           <Link
             to="/order"
-            className="ml-1 flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+            className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
             style={{ background: "var(--accent)" }}
           >
             <Plus size={16} />
-            <span className="hidden sm:inline">New order</span>
+            New order
           </Link>
         </div>
+
+        {/* Mobile controls */}
+        <div className="flex items-center gap-1.5 sm:hidden">
+          {themeButton}
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border transition-colors"
+            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
       </nav>
+
+      {/* Mobile dropdown menu */}
+      {open && (
+        <div
+          className="border-t px-5 py-3 sm:hidden"
+          style={{ borderColor: "var(--border)", background: "var(--bg)" }}
+        >
+          <div className="flex flex-col gap-1">
+            {links.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+                style={({ isActive }) => ({
+                  color: isActive ? "var(--accent-text)" : "var(--text)",
+                  background: isActive ? "var(--accent-soft)" : "transparent",
+                })}
+              >
+                {l.label}
+              </NavLink>
+            ))}
+            <Link
+              to="/order"
+              className="mt-1 flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-semibold text-white"
+              style={{ background: "var(--accent)" }}
+            >
+              <Plus size={16} />
+              New order
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
