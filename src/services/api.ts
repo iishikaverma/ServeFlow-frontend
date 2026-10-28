@@ -104,6 +104,25 @@ export async function createOrder(
   }
 }
 
+export async function updateOrderStatus(
+  orderId: number,
+  status: string
+): Promise<{ orderId: number; status: string }> {
+  if (FORCE_MOCK || currentMode === "mock") {
+    setMode("mock");
+    return { orderId, status };
+  }
+  try {
+    return await request<{ orderId: number; status: string }>(
+      `/api/orders/${orderId}/status`,
+      { method: "PATCH", body: JSON.stringify({ status }) }
+    );
+  } catch {
+    setMode("mock");
+    return { orderId, status };
+  }
+}
+
 export async function payOrder(
   orderId: number,
   method: PaymentMethod,

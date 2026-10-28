@@ -10,16 +10,37 @@ import {
   Search,
   X,
   SearchX,
+  ArrowRight,
 } from "lucide-react";
-import { getMenu, getOrders } from "../services/api";
+import { getMenu, getOrders, updateOrderStatus } from "../services/api";
 import type { MenuItem, Order } from "../services/types";
 import { computeStats, itemsSummary, statusStyle } from "../lib/orders";
 import { formatINR, initials } from "../lib/format";
+import { useToast } from "../components/ui/Toast";
+
+// Preparation statuses an order moves through (Paid is set via payment).
+const PREP_STATUSES = ["Confirmed", "Preparing", "Ready"];
 
 function Dashboard() {
+  const toast = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  async function changeStatus(orderId: number, status: string) {
+    const prev = orders;
+    // Optimistic update.
+    setOrders((os) =>
+      os.map((o) => (o.orderId === orderId ? { ...o, status } : o))
+    );
+    try {
+      await updateOrderStatus(orderId, status);
+      toast.success(`Order #${orderId} → ${status}`);
+    } catch {
+      setOrders(prev); // revert on failure
+      toast.error("Couldn't update status");
+    }
+  }
 
   // Orders board controls
   const [orderSearch, setOrderSearch] = useState("");
@@ -192,7 +213,7 @@ function Dashboard() {
           ) : (
             <div className="space-y-3">
               {visibleOrders.map((o) => (
-                <OrderCard key={o.orderId} order={o} />
+                <OrderCard key={o.orderId} order={o} onStatusChange={changeStatus} />
               ))}
             </div>
           )}
@@ -357,12 +378,27 @@ function NoMatches({ onClear }: { onClear: () => void }) {
   );
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({
+  order,
+  onStatusChange,
+}: {
+  order: Order;
+  onStatusChange: (orderId: number, status: string) => void;
+}) {
   const st = statusStyle(order.status);
   const paid = order.status.toLowerCase() === "paid";
 
-  const content = (
-    <>
+  // Status options for the picker: the prep flow plus the current one if it's
+  // something unexpected (never "Paid" — that comes from taking payment).
+  const statusOptions = PREP_STATUSES.includes(order.status)
+    ? PREP_STATUSES
+    : [order.status, ...PREP_STATUSES];
+
+  return (
+    <div
+      className="rounded-2xl border p-4"
+      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span
@@ -385,9 +421,11 @@ function OrderCard({ order }: { order: Order }) {
           {st.label}
         </span>
       </div>
+
       <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
         {itemsSummary(order)}
       </p>
+
       <div
         className="mt-3 flex items-center justify-between border-t pt-3"
         style={{ borderColor: "var(--border)" }}
@@ -397,28 +435,31 @@ function OrderCard({ order }: { order: Order }) {
         </span>
         <span className="tnum text-sm font-bold">{formatINR(order.total)}</span>
       </div>
-    </>
-  );
 
-  const cardStyle = { background: "var(--surface)", borderColor: "var(--border)" };
-
-  // Paid orders are done — not clickable. Unpaid ones link to payment.
-  if (paid) {
-    return (
-      <div className="rounded-2xl border p-4" style={cardStyle}>
-        {content}
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      to={`/order/${order.orderId}/pay`}
-      className="block rounded-2xl border p-4 transition-transform hover:-translate-y-0.5"
-      style={cardStyle}
-    >
-      {content}
-    </Link>
+      {!paid && (
+        <div className="mt-3 flex items-center gap-2">
+          <select
+            className="select flex-1"
+            value={order.status}
+            onChange={(e) => onStatusChange(order.orderId, e.target.value)}
+            aria-label={`Status for order ${order.orderId}`}
+          >
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <Link
+            to={`/order/${order.orderId}/pay`}
+            className="flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-semibold text-white"
+            style={{ background: "var(--accent)" }}
+          >
+            Pay <ArrowRight size={15} />
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
 
