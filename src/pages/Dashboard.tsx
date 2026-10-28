@@ -359,12 +359,10 @@ function NoMatches({ onClear }: { onClear: () => void }) {
 
 function OrderCard({ order }: { order: Order }) {
   const st = statusStyle(order.status);
-  return (
-    <Link
-      to={`/order/${order.orderId}/pay`}
-      className="block rounded-2xl border p-4 transition-transform hover:-translate-y-0.5"
-      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-    >
+  const paid = order.status.toLowerCase() === "paid";
+
+  const content = (
+    <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span
@@ -395,10 +393,31 @@ function OrderCard({ order }: { order: Order }) {
         style={{ borderColor: "var(--border)" }}
       >
         <span className="text-xs" style={{ color: "var(--text-faint)" }}>
-          {order.customer.phone}
+          {paid ? "Payment received" : order.customer.phone}
         </span>
         <span className="tnum text-sm font-bold">{formatINR(order.total)}</span>
       </div>
+    </>
+  );
+
+  const cardStyle = { background: "var(--surface)", borderColor: "var(--border)" };
+
+  // Paid orders are done — not clickable. Unpaid ones link to payment.
+  if (paid) {
+    return (
+      <div className="rounded-2xl border p-4" style={cardStyle}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      to={`/order/${order.orderId}/pay`}
+      className="block rounded-2xl border p-4 transition-transform hover:-translate-y-0.5"
+      style={cardStyle}
+    >
+      {content}
     </Link>
   );
 }
