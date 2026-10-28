@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   Receipt,
@@ -10,16 +10,16 @@ import {
   Search,
   X,
   SearchX,
-  ArrowRight,
 } from "lucide-react";
 import { getMenu, getOrders, updateOrderStatus } from "../services/api";
 import type { MenuItem, Order } from "../services/types";
 import { computeStats, itemsSummary, statusStyle } from "../lib/orders";
 import { formatINR, initials } from "../lib/format";
 import { useToast } from "../components/ui/Toast";
+import { Select } from "../components/ui/Select";
 
-// Preparation statuses an order moves through (Paid is set via payment).
-const PREP_STATUSES = ["Confirmed", "Preparing", "Ready"];
+// Fulfillment stages an order moves through (payment is a separate tag).
+const STATUS_FLOW = ["Received", "Preparing", "Ready", "Completed"];
 
 function Dashboard() {
   const toast = useToast();
@@ -169,28 +169,26 @@ function Dashboard() {
                   onChange={setOrderSearch}
                   placeholder="Search orders…"
                 />
-                <select
-                  className="select"
+                <Select
+                  ariaLabel="Filter by status"
                   value={orderStatus}
-                  onChange={(e) => setOrderStatus(e.target.value)}
-                  aria-label="Filter by status"
-                >
-                  {statuses.map((s) => (
-                    <option key={s} value={s}>
-                      {s === "All" ? "All statuses" : s}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="select"
+                  onChange={setOrderStatus}
+                  options={statuses.map((s) => ({
+                    value: s,
+                    label: s === "All" ? "All statuses" : s,
+                  }))}
+                />
+                <Select
+                  ariaLabel="Sort orders"
                   value={orderSort}
-                  onChange={(e) => setOrderSort(e.target.value)}
-                  aria-label="Sort orders"
-                >
-                  <option value="newest">Newest</option>
-                  <option value="total-desc">Total: high → low</option>
-                  <option value="total-asc">Total: low → high</option>
-                </select>
+                  onChange={setOrderSort}
+                  menuAlign="right"
+                  options={[
+                    { value: "newest", label: "Newest" },
+                    { value: "total-desc", label: "Total: high → low" },
+                    { value: "total-asc", label: "Total: low → high" },
+                  ]}
+                />
               </div>
             )}
           </div>
@@ -242,28 +240,26 @@ function Dashboard() {
                 onChange={setMenuSearch}
                 placeholder="Search menu…"
               />
-              <select
-                className="select"
+              <Select
+                ariaLabel="Filter by category"
                 value={menuCategory}
-                onChange={(e) => setMenuCategory(e.target.value)}
-                aria-label="Filter by category"
-              >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c === "All" ? "All categories" : c}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="select"
+                onChange={setMenuCategory}
+                options={categories.map((c) => ({
+                  value: c,
+                  label: c === "All" ? "All categories" : c,
+                }))}
+              />
+              <Select
+                ariaLabel="Sort menu"
                 value={menuSort}
-                onChange={(e) => setMenuSort(e.target.value)}
-                aria-label="Sort menu"
-              >
-                <option value="name">Name</option>
-                <option value="price-asc">Price: low → high</option>
-                <option value="price-desc">Price: high → low</option>
-              </select>
+                onChange={setMenuSort}
+                menuAlign="right"
+                options={[
+                  { value: "name", label: "Name" },
+                  { value: "price-asc", label: "Price: low → high" },
+                  { value: "price-desc", label: "Price: high → low" },
+                ]}
+              />
             </div>
           )}
 
@@ -385,21 +381,44 @@ function OrderCard({
   order: Order;
   onStatusChange: (orderId: number, status: string) => void;
 }) {
+  const navigate = useNavigate();
   const st = statusStyle(order.status);
-  const paid = order.status.toLowerCase() === "paid";
 
-  // Status options for the picker: the prep flow plus the current one if it's
-  // something unexpected (never "Paid" — that comes from taking payment).
-  const statusOptions = PREP_STATUSES.includes(order.status)
-    ? PREP_STATUSES
-    : [order.status, ...PREP_STATUSES];
+  // "Completed" is only offered once the order is paid.
+  const flow = order.paid
+    ? STATUS_FLOW
+    : STATUS_FLOW.filter((s) => s !== "Completed");
+  const statusOptions = flow.includes(order.status)
+    ? flow
+    : [order.status, ...flow];
+
+  // Unpaid orders are clickable → go to payment. Paid orders don't navigate.
+  const clickable = !order.paid;
+  const goToPayment = () => {
+    if (clickable) navigate(`/order/${order.orderId}/pay`);
+  };
+
+  const paidTag = order.paid
+    ? { bg: "#EAF3DE", color: "#3B6D11", label: "Paid" }
+    : { bg: "#FAEEDA", color: "#854F0B", label: "Unpaid" };
 
   return (
     <div
-      className="rounded-2xl border p-4"
+      onClick={goToPayment}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          goToPayment();
+        }
+      }}
+      className={`rounded-2xl border p-4 ${
+        clickable ? "cursor-pointer transition-transform hover:-translate-y-0.5" : ""
+      }`}
       style={{ background: "var(--surface)", borderColor: "var(--border)" }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3">
           <span
             className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold"
@@ -414,12 +433,20 @@ function OrderCard({
             </p>
           </div>
         </div>
-        <span
-          className="rounded-full px-3 py-1 text-xs font-medium"
-          style={{ background: st.bg, color: st.color }}
-        >
-          {st.label}
-        </span>
+        <div className="flex flex-col items-end gap-1.5">
+          <span
+            className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+            style={{ background: paidTag.bg, color: paidTag.color }}
+          >
+            {paidTag.label}
+          </span>
+          <span
+            className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+            style={{ background: st.bg, color: st.color }}
+          >
+            {st.label}
+          </span>
+        </div>
       </div>
 
       <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
@@ -431,34 +458,20 @@ function OrderCard({
         style={{ borderColor: "var(--border)" }}
       >
         <span className="text-xs" style={{ color: "var(--text-faint)" }}>
-          {paid ? "Payment received" : order.customer.phone}
+          {clickable ? "Tap to take payment" : order.customer.phone}
         </span>
         <span className="tnum text-sm font-bold">{formatINR(order.total)}</span>
       </div>
 
-      {!paid && (
-        <div className="mt-3 flex items-center gap-2">
-          <select
-            className="select flex-1"
-            value={order.status}
-            onChange={(e) => onStatusChange(order.orderId, e.target.value)}
-            aria-label={`Status for order ${order.orderId}`}
-          >
-            {statusOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <Link
-            to={`/order/${order.orderId}/pay`}
-            className="flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-semibold text-white"
-            style={{ background: "var(--accent)" }}
-          >
-            Pay <ArrowRight size={15} />
-          </Link>
-        </div>
-      )}
+      {/* Fulfillment status — independent of payment. Stops card navigation. */}
+      <Select
+        block
+        className="mt-3"
+        ariaLabel={`Status for order ${order.orderId}`}
+        value={order.status}
+        onChange={(v) => onStatusChange(order.orderId, v)}
+        options={statusOptions.map((opt) => ({ value: opt, label: opt }))}
+      />
     </div>
   );
 }

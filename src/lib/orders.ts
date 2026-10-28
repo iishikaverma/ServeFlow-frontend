@@ -30,19 +30,25 @@ export function computeStats(orders: Order[]): DashboardStats {
   return { revenue, orderCount, avgTicket, topSeller };
 }
 
-// Maps a backend status string to themed colors (uses CSS token vars).
+// Order lifecycle colours. Light tints + dark text read well in both themes.
+const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  received: { bg: "#F1EFE8", color: "#5F5E5A" }, // new order
+  preparing: { bg: "#FAEEDA", color: "#854F0B" }, // being made
+  ready: { bg: "#E6F1FB", color: "#185FA5" }, // ready to serve
+  completed: { bg: "#EAF3DE", color: "#3B6D11" }, // delivered / done
+};
+
 export function statusStyle(status: string): {
   bg: string;
   color: string;
   label: string;
 } {
-  const s = status.toLowerCase();
-  if (s === "paid")
-    return { bg: "var(--success-soft)", color: "var(--success)", label: status };
-  if (s === "preparing" || s === "pending")
-    return { bg: "var(--warning-soft)", color: "var(--warning)", label: status };
-  // Confirmed / default
-  return { bg: "var(--accent-soft)", color: "var(--accent-text)", label: status };
+  const style =
+    STATUS_COLORS[status.toLowerCase()] ?? {
+      bg: "var(--accent-soft)",
+      color: "var(--accent-text)",
+    };
+  return { ...style, label: status };
 }
 
 // Short "2× Pizza · 1× Burger" summary, skipping zero-qty lines.

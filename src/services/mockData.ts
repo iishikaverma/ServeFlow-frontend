@@ -15,7 +15,8 @@ export const mockMenu: MenuItem[] = [
 export const mockOrders: Order[] = [
   {
     orderId: 5001,
-    status: "Confirmed",
+    status: "Received",
+    paid: false,
     total: 697,
     customer: {
       id: 101,
@@ -31,6 +32,7 @@ export const mockOrders: Order[] = [
   {
     orderId: 5002,
     status: "Preparing",
+    paid: true,
     total: 567,
     customer: {
       id: 102,
@@ -46,7 +48,8 @@ export const mockOrders: Order[] = [
   },
   {
     orderId: 5003,
-    status: "Paid",
+    status: "Completed",
+    paid: true,
     total: 398,
     customer: {
       id: 103,

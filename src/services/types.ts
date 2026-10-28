@@ -21,11 +21,13 @@ export interface OrderLineItem {
   subtotal: number;
 }
 
-export type OrderStatus = "Pending" | "Confirmed" | "Preparing" | "Paid";
+// Fulfillment status — payment is tracked separately via `paid`.
+export type OrderStatus = "Received" | "Preparing" | "Ready" | "Completed";
 
 export interface Order {
   orderId: number;
   status: OrderStatus | string;
+  paid: boolean;
   total: number;
   customer: Customer;
   items: OrderLineItem[];
