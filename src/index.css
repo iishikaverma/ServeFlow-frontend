@@ -116,6 +116,23 @@ body {
   box-shadow: 0 0 0 3px var(--ring);
 }
 
+.select {
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8125rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
