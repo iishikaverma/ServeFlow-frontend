@@ -10,6 +10,15 @@ export const mockMenu: MenuItem[] = [
   { id: 4, name: "Paneer Tikka", category: "Starters", price: 189 },
   { id: 5, name: "Cold Coffee", category: "Beverages", price: 119 },
   { id: 6, name: "Chocolate Brownie", category: "Desserts", price: 149 },
+  { id: 7, name: "Farmhouse Pizza", category: "Pizza", price: 329 },
+  { id: 8, name: "Paneer Makhani Pizza", category: "Pizza", price: 349 },
+  { id: 9, name: "Crispy Chicken Burger", category: "Burgers", price: 249 },
+  { id: 10, name: "Red Sauce Pasta", category: "Pasta", price: 219 },
+  { id: 11, name: "Peri Peri Fries", category: "Starters", price: 129 },
+  { id: 12, name: "Garlic Bread", category: "Starters", price: 139 },
+  { id: 13, name: "Fresh Lime Soda", category: "Beverages", price: 89 },
+  { id: 14, name: "Masala Chai", category: "Beverages", price: 49 },
+  { id: 15, name: "Gulab Jamun", category: "Desserts", price: 99 },
 ];
 
 export const mockOrders: Order[] = [
